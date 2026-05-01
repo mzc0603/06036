@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -277,19 +278,81 @@
         }
 
         .wheel-label {
+            display: none;
+        }
+
+        .blind-box {
+            width: 280px;
+            height: 280px;
+            margin: 0 auto 30px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 50%, #9b59b6 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 15px 40px rgba(231, 76, 60, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .blind-box::before {
+            content: '';
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 38%;
-            transform-origin: left center;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: var(--white);
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-            white-space: nowrap;
-            text-align: left;
-            margin-left: 12%;
-            padding-top: 2px;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%);
+            animation: shine 3s linear infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .blind-box:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 50px rgba(231, 76, 60, 0.5);
+        }
+
+        .blind-box:active {
+            transform: scale(0.98);
+        }
+
+        .blind-box.opening {
+            animation: box-open 0.5s ease forwards;
+        }
+
+        @keyframes box-open {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .box-inner {
+            text-align: center;
+            z-index: 1;
+        }
+
+        .box-emoji {
+            font-size: 6rem;
+            display: block;
+            margin-bottom: 15px;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .box-text {
+            font-size: 1.3rem;
+            color: white;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
         .options-panel {
@@ -741,7 +804,7 @@
         </header>
 
         <nav class="nav-tabs">
-            <button class="nav-tab active" data-tab="wheel">幸运转盘</button>
+            <button class="nav-tab active" data-tab="wheel">幸运盲盒</button>
             <button class="nav-tab" data-tab="lottery">随机抽签</button>
             <button class="nav-tab" data-tab="name">随机点名</button>
             <button class="nav-tab" data-tab="dice">掷骰子</button>
@@ -751,18 +814,17 @@
 
         <section id="wheel" class="section active">
             <div class="card">
-                <h2 class="card-title">幸运大转盘</h2>
-                <div class="wheel-container">
-                    <div class="wheel-pointer"></div>
-                    <div class="wheel" id="wheelCanvas">
-                        <div class="wheel-inner">
-                            <div class="wheel-center" id="spinBtn">开始</div>
+                <h2 class="card-title">幸运盲盒</h2>
+                <div style="text-align: center;">
+                    <div class="blind-box" id="blindBox">
+                        <div class="box-inner">
+                            <span class="box-emoji">🎁</span>
+                            <span class="box-text">点击抽奖</span>
                         </div>
-                        <div class="wheel-labels" id="wheelLabels"></div>
                     </div>
                 </div>
                 <div class="input-group">
-                    <input type="text" id="wheelInput" placeholder="输入奖项名称，如：特等奖" maxlength="20">
+                    <input type="text" id="wheelInput" placeholder="输入奖品名称，如：一等奖" maxlength="20">
                     <button class="btn btn-primary" onclick="addWheelOption()">添加</button>
                 </div>
                 <div class="options-panel" id="wheelOptions"></div>
@@ -773,7 +835,7 @@
                 <div class="result-display" id="wheelResult">
                     <div class="result-emoji">🎉</div>
                     <div class="result-text" id="wheelResultText"></div>
-                    <div class="result-sub">恭喜您！</div>
+                    <div class="result-sub">恭喜您获得！</div>
                 </div>
             </div>
         </section>
@@ -1075,36 +1137,16 @@
         }
 
         function renderWheel() {
-            const wheel = document.getElementById('wheelCanvas');
-            const labels = document.getElementById('wheelLabels');
-            const center = document.getElementById('spinBtn');
-            
-            if (wheelOptions.length < 2) {
-                center.textContent = '需2个';
-                return;
+            const box = document.getElementById('blindBox');
+            if (wheelOptions.length < 1) {
+                box.querySelector('.box-text').textContent = '请添加奖品';
+                box.style.opacity = '0.6';
+                box.style.cursor = 'not-allowed';
+            } else {
+                box.querySelector('.box-text').textContent = '点击抽奖';
+                box.style.opacity = '1';
+                box.style.cursor = 'pointer';
             }
-            center.textContent = '开始';
-
-            const angle = 360 / wheelOptions.length;
-            const colors = ['#e74c3c', '#f39c12', '#9b59b6', '#27ae60', '#3498db', '#e67e22', '#1abc9c', '#34495e'];
-            
-            let gradientStops = [];
-            wheelOptions.forEach((opt, i) => {
-                const startAngle = i * angle;
-                const endAngle = (i + 1) * angle;
-                gradientStops.push(`${colors[i % colors.length]} ${startAngle}deg ${endAngle}deg`);
-            });
-            wheel.style.background = `conic-gradient(${gradientStops.join(', ')})`;
-
-            labels.innerHTML = '';
-            wheelOptions.forEach((opt, i) => {
-                const label = document.createElement('div');
-                label.className = 'wheel-label';
-                const rotateAngle = i * angle + angle / 2;
-                label.style.transform = `rotate(${rotateAngle}deg)`;
-                label.textContent = opt.length > 6 ? opt.substring(0, 5) + '…' : opt;
-                labels.appendChild(label);
-            });
         }
 
         function renderWheelOptions() {
@@ -1147,39 +1189,38 @@
         }
 
         function spinWheel() {
-            if (isSpinning || wheelOptions.length < 2) return;
+            if (isSpinning || wheelOptions.length < 1) return;
             isSpinning = true;
-            playSound('tick');
             
-            const wheel = document.getElementById('wheelCanvas');
+            const box = document.getElementById('blindBox');
             const result = document.getElementById('wheelResult');
+            const boxEmoji = box.querySelector('.box-emoji');
             result.classList.remove('show');
             
-            const extraSpins = 5 + Math.random() * 5;
-            const singleAngle = 360 / wheelOptions.length;
-            const randomIndex = Math.floor(Math.random() * wheelOptions.length);
-            const targetAngle = 360 - (randomIndex * singleAngle + singleAngle / 2);
-            const totalRotation = extraSpins * 360 + targetAngle;
+            box.classList.add('opening');
+            playSound('tick');
             
-            wheel.classList.add('spinning');
-            wheel.style.transform = `rotate(${totalRotation}deg)`;
-
-            let tickCount = 0;
-            const tickInterval = setInterval(() => {
+            const emojis = ['🎁', '🎊', '🎉', '✨', '🌟', '💝', '🎈', '🎀', '🏆', '💎'];
+            let count = 0;
+            const emojiInterval = setInterval(() => {
+                boxEmoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
                 playSound('tick');
-                tickCount++;
-                if (tickCount > 30) clearInterval(tickInterval);
-            }, 150);
-
-            setTimeout(() => {
-                isSpinning = false;
-                wheel.classList.remove('spinning');
-                wheel.style.transform = `rotate(${targetAngle}deg)`;
-                document.getElementById('wheelResultText').textContent = wheelOptions[randomIndex];
-                result.classList.add('show');
-                playSound('win');
-                showConfettiEffect();
-            }, 5000);
+                count++;
+                if (count > 20) {
+                    clearInterval(emojiInterval);
+                    
+                    setTimeout(() => {
+                        const randomIndex = Math.floor(Math.random() * wheelOptions.length);
+                        boxEmoji.textContent = '🎁';
+                        box.classList.remove('opening');
+                        document.getElementById('wheelResultText').textContent = wheelOptions[randomIndex];
+                        result.classList.add('show');
+                        playSound('win');
+                        showConfettiEffect();
+                        isSpinning = false;
+                    }, 300);
+                }
+            }, 100);
         }
 
         function showConfettiEffect() {
@@ -1546,7 +1587,7 @@
         document.getElementById('nameInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') addName();
         });
-        document.getElementById('spinBtn').addEventListener('click', spinWheel);
+        document.getElementById('blindBox').addEventListener('click', spinWheel);
         document.getElementById('guessInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') doGuess();
         });
@@ -1561,3 +1602,1568 @@
     </script>
 </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>幸运大转盘 | 抽签许愿随机点名趣味抽奖</title>
+    <meta name="description" content="免费在线幸运大转盘抽签许愿工具，支持自定义奖项、随机抽签、随机点名、掷骰子、猜数字等趣味功能，即开即用无需注册，适合年会抽奖、课堂点名、活动互动！">
+    <meta name="keywords" content="幸运大转盘,抽签,许愿,随机点名,抽奖,掷骰子,猜数字,在线转盘,趣味抽奖,转盘抽奖">
+    <meta name="author" content="Lucky Wheel">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://yourusername.github.io/lucky-wheel/">
+    <meta property="og:title" content="幸运大转盘 | 抽签许愿随机点名趣味抽奖">
+    <meta property="og:description" content="免费在线幸运大转盘抽签许愿工具，支持自定义奖项、随机抽签、随机点名、掷骰子、猜数字等趣味功能！">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="zh_CN">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="幸运大转盘 | 抽签许愿随机点名趣味抽奖">
+    <meta name="twitter:description" content="免费在线幸运大转盘抽签许愿工具，支持多种趣味功能！">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #e74c3c;
+            --primary-dark: #c0392b;
+            --secondary: #f39c12;
+            --accent: #9b59b6;
+            --success: #27ae60;
+            --info: #3498db;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --white: #ffffff;
+            --shadow: 0 10px 40px rgba(0,0,0,0.15);
+            --shadow-sm: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 50%, #9b59b6 100%);
+            min-height: 100vh;
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        .confetti-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0.6;
+            animation: confetti-fall linear infinite;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--white);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+            animation: title-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes title-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.15);
+            padding: 15px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-tab {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            color: var(--white);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .nav-tab:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .nav-tab.active {
+            background: var(--white);
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title::before {
+            content: '🎯';
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto 30px;
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 50px;
+            z-index: 10;
+        }
+
+        .wheel-pointer::before {
+            content: '▼';
+            position: absolute;
+            font-size: 2.5rem;
+            color: var(--secondary);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            animation: pointer-bounce 0.5s ease-in-out infinite;
+        }
+
+        @keyframes pointer-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(5px); }
+        }
+
+        .wheel {
+            width: 100%;
+            padding-top: 100%;
+            border-radius: 50%;
+            position: relative;
+            background: conic-gradient(
+                var(--primary) 0deg 45deg,
+                var(--secondary) 45deg 90deg,
+                var(--accent) 90deg 135deg,
+                var(--success) 135deg 180deg,
+                var(--info) 180deg 225deg,
+                #e67e22 225deg 270deg,
+                #1abc9c 270deg 315deg,
+                #34495e 315deg 360deg
+            );
+            box-shadow: 0 0 0 8px var(--white),
+                        0 0 0 12px var(--secondary),
+                        var(--shadow);
+            transition: transform 0s;
+        }
+
+        .wheel.spinning {
+            transition: transform 5s cubic-bezier(0.2, 0.8, 0.3, 0.99);
+        }
+
+        .wheel-inner {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border-radius: 50%;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wheel-center {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .wheel-center:hover {
+            transform: scale(1.1);
+        }
+
+        .wheel-center:active {
+            transform: scale(0.95);
+        }
+
+        .wheel-labels {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .wheel-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: 0 0;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--white);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            white-space: nowrap;
+        }
+
+        .options-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .option-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, var(--light), #dfe6e9);
+            border-radius: 20px;
+            font-size: 0.95rem;
+            color: var(--dark);
+            animation: tag-appear 0.3s ease;
+        }
+
+        @keyframes tag-appear {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .option-tag .remove-btn {
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: var(--primary);
+            color: var(--white);
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8rem;
+            line-height: 1;
+            transition: transform 0.2s;
+        }
+
+        .option-tag .remove-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 14px 20px;
+            border: 2px solid var(--light);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.5);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary), #e67e22);
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #1e8449);
+            color: var(--white);
+        }
+
+        .btn-sm {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .result-display {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #fff5f5, #fff0f0);
+            border-radius: 16px;
+            margin-top: 20px;
+            border: 2px dashed var(--primary);
+            display: none;
+        }
+
+        .result-display.show {
+            display: block;
+            animation: result-pop 0.5s ease;
+        }
+
+        @keyframes result-pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .result-display .result-emoji {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            animation: emoji-shake 0.5s ease;
+        }
+
+        @keyframes emoji-shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-15deg); }
+            75% { transform: rotate(15deg); }
+        }
+
+        .result-display .result-text {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .result-display .result-sub {
+            font-size: 1rem;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            background: linear-gradient(135deg, #fff, #f8f9fa);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            border: 2px solid var(--light);
+            transition: all 0.3s ease;
+        }
+
+        .game-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+
+        .game-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .game-display {
+            font-size: 3rem;
+            margin: 20px 0;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dice {
+            width: 70px;
+            height: 70px;
+            background: var(--white);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 2px solid var(--light);
+        }
+
+        .dice.rolling {
+            animation: dice-roll 0.5s ease infinite;
+        }
+
+        @keyframes dice-roll {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(15deg) scale(1.1); }
+            50% { transform: rotate(0deg) scale(1); }
+            75% { transform: rotate(-15deg) scale(1.1); }
+        }
+
+        .number-display {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .number-input {
+            width: 120px;
+            padding: 12px;
+            text-align: center;
+            font-size: 1.5rem;
+            border: 2px solid var(--light);
+            border-radius: 12px;
+            margin: 15px 0;
+            font-family: inherit;
+        }
+
+        .number-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .hint-text {
+            color: #666;
+            font-size: 0.95rem;
+            margin: 10px 0;
+        }
+
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .history-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-item .time {
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: modal-pop 0.3s ease;
+        }
+
+        @keyframes modal-pop {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+
+        .modal-close {
+            float: right;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: var(--light);
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .preset-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .preset-item {
+            padding: 12px 16px;
+            background: var(--light);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .preset-item:hover {
+            border-color: var(--primary);
+        }
+
+        .preset-item.active {
+            border-color: var(--primary);
+            background: #fff0f0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        footer a {
+            color: var(--white);
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .nav-tabs {
+                padding: 10px;
+                gap: 5px;
+            }
+
+            .nav-tab {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+
+            .card {
+                padding: 20px;
+                border-radius: 20px;
+            }
+
+            .wheel-container {
+                max-width: 320px;
+            }
+
+            .wheel-center {
+                width: 60px;
+                height: 60px;
+                font-size: 1.2rem;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.95rem;
+            }
+        }
+
+        .audio-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: var(--white);
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            font-size: 1.5rem;
+            z-index: 100;
+            transition: transform 0.3s;
+        }
+
+        .audio-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--dark);
+            color: var(--white);
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            z-index: 1001;
+            transition: transform 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="confetti-bg" id="confettiBg"></div>
+
+    <div class="container">
+        <header>
+            <h1>🎰 幸运大转盘</h1>
+            <p>抽签许愿 · 随机点名 · 趣味抽奖</p>
+        </header>
+
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="wheel">幸运盲盒</button>
+            <button class="nav-tab" data-tab="lottery">随机抽签</button>
+            <button class="nav-tab" data-tab="name">随机点名</button>
+            <button class="nav-tab" data-tab="dice">掷骰子</button>
+            <button class="nav-tab" data-tab="guess">猜数字</button>
+            <button class="nav-tab" data-tab="settings">设置</button>
+        </nav>
+
+        <section id="wheel" class="section active">
+            <div class="card">
+                <h2 class="card-title">幸运盲盒</h2>
+                <div style="text-align: center;">
+                    <div class="blind-box" id="blindBox">
+                        <div class="box-inner">
+                            <span class="box-emoji">🎁</span>
+                            <span class="box-text">点击抽奖</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="wheelInput" placeholder="输入奖品名称，如：一等奖" maxlength="20">
+                    <button class="btn btn-primary" onclick="addWheelOption()">添加</button>
+                </div>
+                <div class="options-panel" id="wheelOptions"></div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="openPresets()">📋 预设模板</button>
+                    <button class="btn btn-success" onclick="resetWheel()">🔄 重置</button>
+                </div>
+                <div class="result-display" id="wheelResult">
+                    <div class="result-emoji">🎉</div>
+                    <div class="result-text" id="wheelResultText"></div>
+                    <div class="result-sub">恭喜您获得！</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="lottery" class="section">
+            <div class="card">
+                <h2 class="card-title">随机抽签</h2>
+                <div class="game-display">
+                    <div id="lotteryDisplay">📜</div>
+                </div>
+                <div class="btn-group" style="justify-content: center;">
+                    <button class="btn btn-primary btn-lg" onclick="doLottery()">抽签</button>
+                </div>
+                <p class="hint-text">点击按钮随机抽取一支签</p>
+                <div class="input-group">
+                    <input type="text" id="lotteryInput" placeholder="输入签文，如：大吉">
+                    <button class="btn btn-primary" onclick="addLottery()">添加</button>
+                </div>
+                <div class="options-panel" id="lotteryOptions"></div>
+                <div class="result-display" id="lotteryResult">
+                    <div class="result-emoji">🎴</div>
+                    <div class="result-text" id="lotteryResultText"></div>
+                    <div class="result-sub">您的签运</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="name" class="section">
+            <div class="card">
+                <h2 class="card-title">随机点名</h2>
+                <div class="game-display">
+                    <div id="nameDisplay">👤</div>
+                </div>
+                <div class="btn-group" style="justify-content: center;">
+                    <button class="btn btn-primary btn-lg" onclick="doNamePick()">点名</button>
+                </div>
+                <p class="hint-text">随机抽取一位幸运观众</p>
+                <div class="input-group">
+                    <input type="text" id="nameInput" placeholder="输入姓名">
+                    <button class="btn btn-primary" onclick="addName()">添加</button>
+                </div>
+                <div class="options-panel" id="nameOptions"></div>
+                <div class="result-display" id="nameResult">
+                    <div class="result-emoji">🌟</div>
+                    <div class="result-text" id="nameResultText"></div>
+                    <div class="result-sub">被选中的人</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="dice" class="section">
+            <div class="card">
+                <h2 class="card-title">掷骰子</h2>
+                <div class="game-display">
+                    <div class="dice" id="diceDisplay">🎲</div>
+                </div>
+                <div class="btn-group" style="justify-content: center;">
+                    <button class="btn btn-primary btn-lg" onclick="doDice()">掷骰子</button>
+                </div>
+                <p class="hint-text">点击按钮掷出1-6点</p>
+                <h4 style="margin: 20px 0 10px; color: var(--dark);">历史记录</h4>
+                <div class="history-list" id="diceHistory">
+                    <div class="history-item" style="justify-content: center; color: #999;">暂无记录</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="guess" class="section">
+            <div class="card">
+                <h2 class="card-title">猜数字游戏</h2>
+                <p class="hint-text">系统会随机生成1-100的数字，你有10次机会猜猜看！</p>
+                <div class="game-display">
+                    <div class="number-display" id="guessDisplay">?</div>
+                </div>
+                <div style="text-align: center;">
+                    <input type="number" class="number-input" id="guessInput" min="1" max="100" placeholder="?">
+                </div>
+                <div class="btn-group" style="justify-content: center;">
+                    <button class="btn btn-primary" onclick="doGuess()">猜！</button>
+                    <button class="btn btn-secondary" onclick="newGuessGame()">新游戏</button>
+                </div>
+                <p class="hint-text" id="guessHint">剩余次数：10</p>
+                <h4 style="margin: 20px 0 10px; color: var(--dark);">历史猜测</h4>
+                <div class="history-list" id="guessHistory">
+                    <div class="history-item" style="justify-content: center; color: #999;">暂无记录</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="settings" class="section">
+            <div class="card">
+                <h2 class="card-title">设置</h2>
+                <div class="btn-group" style="margin-bottom: 20px;">
+                    <button class="btn btn-success" onclick="importData()">📥 导入配置</button>
+                    <button class="btn btn-secondary" onclick="exportData()">📤 导出配置</button>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="openModal('soundModal')">🔊 音效设置</button>
+                    <button class="btn btn-secondary" onclick="openModal('aboutModal')">ℹ️ 关于</button>
+                </div>
+            </div>
+            <div class="card">
+                <h2 class="card-title">数据管理</h2>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-primary" onclick="clearAllData()">清空所有数据</button>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>© 2024 幸运大转盘 · 免费开源 · 支持自定义</p>
+            <p style="margin-top: 10px;">
+                <a href="sitemap.xml">网站地图</a>
+            </p>
+        </footer>
+    </div>
+
+    <div class="modal-overlay" id="presetModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('presetModal')">×</button>
+            <h2>📋 预设模板</h2>
+            <p style="color: #666; margin-bottom: 20px;">选择预设快速配置转盘奖项</p>
+            <div class="preset-list">
+                <div class="preset-item" onclick="loadPreset('prize')">🏆 年会抽奖</div>
+                <div class="preset-item" onclick="loadPreset('fortune')">🔮 运势占卜</div>
+                <div class="preset-item" onclick="loadPreset('meal')">🍜 吃什么</div>
+                <div class="preset-item" onclick="loadPreset('punishment')">😂 真心话大冒险</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="soundModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('soundModal')">×</button>
+            <h2>🔊 音效设置</h2>
+            <div style="margin-top: 20px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="soundToggle" checked onchange="toggleSound()">
+                    <span>启用音效</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="aboutModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('aboutModal')">×</button>
+            <h2>ℹ️ 关于</h2>
+            <p style="margin-top: 20px; line-height: 1.8;">
+                <strong>幸运大转盘</strong><br><br>
+                一个纯前端实现的趣味抽奖工具，支持自定义转盘、随机抽签、点名、掷骰子、猜数字等功能。<br><br>
+                🎨 美观简约的界面设计<br>
+                📱 完全响应式布局<br>
+                🔊 音效加持增强体验<br>
+                💾 本地存储数据<br>
+                🚀 一键部署到GitHub Pages
+            </p>
+        </div>
+    </div>
+
+    <button class="audio-toggle" id="audioToggle" onclick="toggleSound()">🔊</button>
+
+    <div class="toast" id="toast">提示消息</div>
+
+    <script>
+        const STORAGE_KEY = 'luckyWheelData';
+        let soundEnabled = true;
+        let audioContext;
+        let currentTab = 'wheel';
+        let wheelOptions = ['一等奖', '二等奖', '三等奖', '谢谢参与', '再来一次'];
+        let lotteryOptions = ['大吉', '中吉', '小吉', '吉', '末吉', '凶'];
+        let nameOptions = ['张三', '李四', '王五', '赵六', '小明', '小红'];
+        let diceHistory = [];
+        let guessHistory = [];
+        let guessNumber = 0;
+        let guessRemain = 10;
+        let isSpinning = false;
+
+        const presetData = {
+            prize: ['特等奖', '一等奖', '二等奖', '三等奖', '四等奖', '参与奖', '谢谢参与'],
+            fortune: ['大吉', '中吉', '小吉', '吉', '半吉', '末吉', '凶', '大凶'],
+            meal: ['火锅', '烧烤', '自助餐', '日料', '中餐', '西餐', '快餐', '随便'],
+            punishment: ['真心话', '大冒险', '唱歌', '跳舞', '学动物叫', '摆pose']
+        };
+
+        const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+
+        function init() {
+            loadData();
+            renderWheel();
+            renderWheelOptions();
+            renderLotteryOptions();
+            renderNameOptions();
+            createConfetti();
+            initAudio();
+            newGuessGame();
+            setupTabs();
+        }
+
+        function setupTabs() {
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                    tab.classList.add('active');
+                    const tabId = tab.dataset.tab;
+                    document.getElementById(tabId).classList.add('active');
+                    currentTab = tabId;
+                });
+            });
+        }
+
+        function initAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            switch(type) {
+                case 'tick':
+                    oscillator.frequency.value = 800;
+                    oscillator.type = 'sine';
+                    gainNode.gain.value = 0.1;
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.05);
+                    break;
+                case 'win':
+                    oscillator.frequency.value = 523.25;
+                    oscillator.type = 'sine';
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                    setTimeout(() => {
+                        const osc2 = audioContext.createOscillator();
+                        const gain2 = audioContext.createGain();
+                        osc2.connect(gain2);
+                        gain2.connect(audioContext.destination);
+                        osc2.frequency.value = 659.25;
+                        osc2.type = 'sine';
+                        gain2.gain.setValueAtTime(0.2, audioContext.currentTime);
+                        gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                        osc2.start();
+                        osc2.stop(audioContext.currentTime + 0.5);
+                    }, 150);
+                    setTimeout(() => {
+                        const osc3 = audioContext.createOscillator();
+                        const gain3 = audioContext.createGain();
+                        osc3.connect(gain3);
+                        gain3.connect(audioContext.destination);
+                        osc3.frequency.value = 783.99;
+                        osc3.type = 'sine';
+                        gain3.gain.setValueAtTime(0.2, audioContext.currentTime);
+                        gain3.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                        osc3.start();
+                        osc3.stop(audioContext.currentTime + 0.5);
+                    }, 300);
+                    break;
+                case 'click':
+                    oscillator.frequency.value = 600;
+                    oscillator.type = 'square';
+                    gainNode.gain.value = 0.05;
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.03);
+                    break;
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const toggle = document.getElementById('soundToggle');
+            const btn = document.getElementById('audioToggle');
+            if (toggle) toggle.checked = soundEnabled;
+            btn.textContent = soundEnabled ? '🔊' : '🔇';
+            showToast(soundEnabled ? '音效已开启' : '音效已关闭');
+        }
+
+        function createConfetti() {
+            const bg = document.getElementById('confettiBg');
+            const colors = ['#e74c3c', '#f39c12', '#9b59b6', '#27ae60', '#3498db', '#e67e22'];
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                confetti.style.animationDelay = Math.random() * 5 + 's';
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                bg.appendChild(confetti);
+            }
+        }
+
+        function renderWheel() {
+            const wheel = document.getElementById('wheelCanvas');
+            const labels = document.getElementById('wheelLabels');
+            const center = document.getElementById('spinBtn');
+            
+            if (wheelOptions.length < 2) {
+                center.textContent = '需2个';
+                return;
+            }
+            center.textContent = '开始';
+
+            const angle = 360 / wheelOptions.length;
+            const colors = ['#e74c3c', '#f39c12', '#9b59b6', '#27ae60', '#3498db', '#e67e22', '#1abc9c', '#34495e'];
+            
+            let gradientStops = [];
+            wheelOptions.forEach((opt, i) => {
+                const startAngle = i * angle;
+                const endAngle = (i + 1) * angle;
+                gradientStops.push(`${colors[i % colors.length]} ${startAngle}deg ${endAngle}deg`);
+            });
+            wheel.style.background = `conic-gradient(${gradientStops.join(', ')})`;
+
+            labels.innerHTML = '';
+            wheelOptions.forEach((opt, i) => {
+                const label = document.createElement('div');
+                label.className = 'wheel-label';
+                const midAngle = (i * angle + angle / 2) * Math.PI / 180;
+                const radius = 42;
+                const x = Math.cos(midAngle) * radius;
+                const y = Math.sin(midAngle) * radius;
+                label.style.transform = `translate(${x}%, ${y}%) rotate(${i * angle + angle/2}deg)`;
+                label.style.transformOrigin = '0 0';
+                label.style.marginLeft = '-50%';
+                label.style.marginTop = '-50%';
+                label.textContent = opt.length > 6 ? opt.substring(0, 5) + '…' : opt;
+                labels.appendChild(label);
+            });
+        }
+
+        function renderWheelOptions() {
+            const container = document.getElementById('wheelOptions');
+            container.innerHTML = wheelOptions.map((opt, i) => `
+                <span class="option-tag">
+                    ${opt}
+                    <button class="remove-btn" onclick="removeWheelOption(${i})">×</button>
+                </span>
+            `).join('');
+        }
+
+        function addWheelOption() {
+            const input = document.getElementById('wheelInput');
+            const value = input.value.trim();
+            if (value && !wheelOptions.includes(value)) {
+                wheelOptions.push(value);
+                input.value = '';
+                renderWheel();
+                renderWheelOptions();
+                saveData();
+                playSound('click');
+            }
+        }
+
+        function removeWheelOption(index) {
+            wheelOptions.splice(index, 1);
+            renderWheel();
+            renderWheelOptions();
+            saveData();
+            playSound('click');
+        }
+
+        function resetWheel() {
+            wheelOptions = ['一等奖', '二等奖', '三等奖', '谢谢参与', '再来一次'];
+            renderWheel();
+            renderWheelOptions();
+            saveData();
+            showToast('已重置');
+        }
+
+        function spinWheel() {
+            if (isSpinning || wheelOptions.length < 1) return;
+            isSpinning = true;
+            
+            const box = document.getElementById('blindBox');
+            const result = document.getElementById('wheelResult');
+            const boxEmoji = box.querySelector('.box-emoji');
+            result.classList.remove('show');
+            
+            box.classList.add('opening');
+            playSound('tick');
+            
+            const emojis = ['🎁', '🎊', '🎉', '✨', '🌟', '💝', '🎈', '🎀', '🏆', '💎'];
+            let count = 0;
+            const emojiInterval = setInterval(() => {
+                boxEmoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                playSound('tick');
+                count++;
+                if (count > 20) {
+                    clearInterval(emojiInterval);
+                    
+                    setTimeout(() => {
+                        const randomIndex = Math.floor(Math.random() * wheelOptions.length);
+                        boxEmoji.textContent = '🎁';
+                        box.classList.remove('opening');
+                        document.getElementById('wheelResultText').textContent = wheelOptions[randomIndex];
+                        result.classList.add('show');
+                        playSound('win');
+                        showConfettiEffect();
+                        isSpinning = false;
+                    }, 300);
+                }
+            }, 100);
+        }
+
+        function showConfettiEffect() {
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.style.cssText = `
+                        position: fixed;
+                        left: ${50 + (Math.random() - 0.5) * 40}%;
+                        top: 50%;
+                        width: 10px;
+                        height: 10px;
+                        background: ${['#e74c3c', '#f39c12', '#9b59b6', '#27ae60'][Math.floor(Math.random() * 4)]};
+                        border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+                        pointer-events: none;
+                        z-index: 1000;
+                        animation: confetti-burst 1s ease-out forwards;
+                    `;
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 1000);
+                }, i * 30);
+            }
+        }
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes confetti-burst {
+                0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+                100% { transform: translateY(-200px) rotate(720deg); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        function renderLotteryOptions() {
+            const container = document.getElementById('lotteryOptions');
+            container.innerHTML = lotteryOptions.map((opt, i) => `
+                <span class="option-tag">
+                    ${opt}
+                    <button class="remove-btn" onclick="removeLottery(${i})">×</button>
+                </span>
+            `).join('');
+        }
+
+        function addLottery() {
+            const input = document.getElementById('lotteryInput');
+            const value = input.value.trim();
+            if (value && !lotteryOptions.includes(value)) {
+                lotteryOptions.push(value);
+                input.value = '';
+                renderLotteryOptions();
+                saveData();
+                playSound('click');
+            }
+        }
+
+        function removeLottery(index) {
+            lotteryOptions.splice(index, 1);
+            renderLotteryOptions();
+            saveData();
+        }
+
+        function doLottery() {
+            if (lotteryOptions.length === 0) {
+                showToast('请先添加签文');
+                return;
+            }
+            const result = document.getElementById('lotteryResult');
+            const display = document.getElementById('lotteryDisplay');
+            result.classList.remove('show');
+            
+            let count = 0;
+            const interval = setInterval(() => {
+                display.textContent = lotteryOptions[Math.floor(Math.random() * lotteryOptions.length)];
+                count++;
+                if (count > 15) {
+                    clearInterval(interval);
+                    const final = lotteryOptions[Math.floor(Math.random() * lotteryOptions.length)];
+                    display.textContent = final;
+                    document.getElementById('lotteryResultText').textContent = final;
+                    result.classList.add('show');
+                    playSound('win');
+                }
+            }, 100);
+        }
+
+        function renderNameOptions() {
+            const container = document.getElementById('nameOptions');
+            container.innerHTML = nameOptions.map((opt, i) => `
+                <span class="option-tag">
+                    ${opt}
+                    <button class="remove-btn" onclick="removeName(${i})">×</button>
+                </span>
+            `).join('');
+        }
+
+        function addName() {
+            const input = document.getElementById('nameInput');
+            const value = input.value.trim();
+            if (value && !nameOptions.includes(value)) {
+                nameOptions.push(value);
+                input.value = '';
+                renderNameOptions();
+                saveData();
+                playSound('click');
+            }
+        }
+
+        function removeName(index) {
+            nameOptions.splice(index, 1);
+            renderNameOptions();
+            saveData();
+        }
+
+        function doNamePick() {
+            if (nameOptions.length === 0) {
+                showToast('请先添加姓名');
+                return;
+            }
+            const result = document.getElementById('nameResult');
+            const display = document.getElementById('nameDisplay');
+            result.classList.remove('show');
+            
+            let count = 0;
+            const interval = setInterval(() => {
+                display.textContent = nameOptions[Math.floor(Math.random() * nameOptions.length)];
+                count++;
+                if (count > 15) {
+                    clearInterval(interval);
+                    const final = nameOptions[Math.floor(Math.random() * nameOptions.length)];
+                    display.textContent = final;
+                    document.getElementById('nameResultText').textContent = final;
+                    result.classList.add('show');
+                    playSound('win');
+                }
+            }, 100);
+        }
+
+        function doDice() {
+            const dice = document.getElementById('diceDisplay');
+            dice.classList.add('rolling');
+            
+            let count = 0;
+            const interval = setInterval(() => {
+                dice.textContent = diceFaces[Math.floor(Math.random() * 6)];
+                count++;
+                if (count > 10) {
+                    clearInterval(interval);
+                    const final = Math.floor(Math.random() * 6) + 1;
+                    dice.textContent = final;
+                    dice.classList.remove('rolling');
+                    playSound('win');
+                    addDiceHistory(final);
+                }
+            }, 80);
+        }
+
+        function addDiceHistory(value) {
+            diceHistory.unshift({
+                value: value,
+                time: new Date().toLocaleTimeString()
+            });
+            if (diceHistory.length > 20) diceHistory.pop();
+            renderDiceHistory();
+        }
+
+        function renderDiceHistory() {
+            const container = document.getElementById('diceHistory');
+            if (diceHistory.length === 0) {
+                container.innerHTML = '<div class="history-item" style="justify-content: center; color: #999;">暂无记录</div>';
+                return;
+            }
+            container.innerHTML = diceHistory.map(item => `
+                <div class="history-item">
+                    <span>🎲 ${item.value}</span>
+                    <span class="time">${item.time}</span>
+                </div>
+            `).join('');
+        }
+
+        function newGuessGame() {
+            guessNumber = Math.floor(Math.random() * 100) + 1;
+            guessRemain = 10;
+            guessHistory = [];
+            document.getElementById('guessDisplay').textContent = '?';
+            document.getElementById('guessInput').value = '';
+            document.getElementById('guessHint').textContent = '剩余次数：10';
+            document.getElementById('guessHistory').innerHTML = '<div class="history-item" style="justify-content: center; color: #999;">暂无记录</div>';
+            showToast('新游戏已开始！');
+        }
+
+        function doGuess() {
+            const input = document.getElementById('guessInput');
+            const guess = parseInt(input.value);
+            
+            if (isNaN(guess) || guess < 1 || guess > 100) {
+                showToast('请输入1-100之间的数字');
+                return;
+            }
+            
+            if (guessRemain <= 0) {
+                showToast('次数用完了，点击新游戏');
+                return;
+            }
+            
+            guessRemain--;
+            guessHistory.unshift({ value: guess, result: guess === guessNumber ? 'correct' : guess < guessNumber ? 'smaller' : 'greater' });
+            renderGuessHistory();
+            
+            const display = document.getElementById('guessDisplay');
+            
+            if (guess === guessNumber) {
+                display.textContent = '🎉';
+                display.style.fontSize = '3rem';
+                document.getElementById('guessHint').textContent = '恭喜答对了！';
+                playSound('win');
+                showToast(`正确答案是 ${guessNumber}！`);
+            } else if (guessRemain === 0) {
+                display.textContent = guessNumber;
+                display.style.fontSize = '3rem';
+                document.getElementById('guessHint').textContent = `游戏结束！正确答案是 ${guessNumber}`;
+                playSound('tick');
+            } else {
+                display.textContent = guess < guessNumber ? '⬆️' : '⬇️';
+                display.style.fontSize = '3rem';
+                document.getElementById('guessHint').textContent = `剩余次数：${guessRemain}，${guess < guessNumber ? '太大了' : '太小了'}`;
+                playSound('click');
+            }
+            
+            input.value = '';
+        }
+
+        function renderGuessHistory() {
+            const container = document.getElementById('guessHistory');
+            if (guessHistory.length === 0) {
+                container.innerHTML = '<div class="history-item" style="justify-content: center; color: #999;">暂无记录</div>';
+                return;
+            }
+            container.innerHTML = guessHistory.map(item => `
+                <div class="history-item">
+                    <span>${item.value} ${item.result === 'correct' ? '✓' : item.result === 'smaller' ? '⬆️' : '⬇️'}</span>
+                </div>
+            `).join('');
+        }
+
+        function openPresets() {
+            openModal('presetModal');
+        }
+
+        function loadPreset(type) {
+            wheelOptions = [...presetData[type]];
+            renderWheel();
+            renderWheelOptions();
+            saveData();
+            closeModal('presetModal');
+            showToast('已加载预设');
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('show');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function exportData() {
+            const data = {
+                wheelOptions,
+                lotteryOptions,
+                nameOptions,
+                soundEnabled
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'lucky-wheel-config.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('配置已导出');
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                        try {
+                            const data = JSON.parse(evt.target.result);
+                            if (data.wheelOptions) wheelOptions = data.wheelOptions;
+                            if (data.lotteryOptions) lotteryOptions = data.lotteryOptions;
+                            if (data.nameOptions) nameOptions = data.nameOptions;
+                            if (typeof data.soundEnabled === 'boolean') soundEnabled = data.soundEnabled;
+                            renderWheel();
+                            renderWheelOptions();
+                            renderLotteryOptions();
+                            renderNameOptions();
+                            saveData();
+                            showToast('配置已导入');
+                        } catch (err) {
+                            showToast('导入失败：文件格式错误');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        function clearAllData() {
+            if (confirm('确定要清空所有数据吗？此操作不可恢复。')) {
+                localStorage.removeItem(STORAGE_KEY);
+                wheelOptions = ['一等奖', '二等奖', '三等奖', '谢谢参与', '再来一次'];
+                lotteryOptions = ['大吉', '中吉', '小吉', '吉', '末吉', '凶'];
+                nameOptions = ['张三', '李四', '王五', '赵六', '小明', '小红'];
+                renderWheel();
+                renderWheelOptions();
+                renderLotteryOptions();
+                renderNameOptions();
+                showToast('所有数据已清空');
+            }
+        }
+
+        function saveData() {
+            const data = {
+                wheelOptions,
+                lotteryOptions,
+                nameOptions,
+                soundEnabled
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    if (data.wheelOptions) wheelOptions = data.wheelOptions;
+                    if (data.lotteryOptions) lotteryOptions = data.lotteryOptions;
+                    if (data.nameOptions) nameOptions = data.nameOptions;
+                    if (typeof data.soundEnabled === 'boolean') soundEnabled = data.soundEnabled;
+                } catch (e) {}
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        document.getElementById('wheelInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addWheelOption();
+        });
+        document.getElementById('lotteryInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addLottery();
+        });
+        document.getElementById('nameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addName();
+        });
+        document.getElementById('blindBox').addEventListener('click', spinWheel);
+        document.getElementById('guessInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') doGuess();
+        });
+
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal(modal.id);
+            });
+        });
+
+        init();
+    </script>
+</body>
+</html>
+>>>>>>> 1604053f0bb0a58d4c487bdd1597ee519a923a5c
